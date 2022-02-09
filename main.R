@@ -21,6 +21,7 @@ library(lattice)
 library(caret)
 library(devtools)
 library(dplyr)
+library(rgl)
 library(ggplot2)
 library(patchwork)
 library(ggbiplot)
@@ -258,6 +259,7 @@ screeplot(pca_class, main = "CLASS PCA", col = "black", type = "lines", pch = 1,
 screeplot(pca_order, main = "ORDER PCA", col = "black", type = "lines", pch = 1, npcs = 10)
 screeplot(pca_family, main = "FAMILY PCA", col = "black", type = "lines", pch = 1, npcs = 10)
 screeplot(pca_genus, main = "GENUS PCA", col = "black", type = "lines", pch = 1, npcs = 10)
+# https://kkokkilkon.tistory.com/144
 
 plot_pca_pylum <- autoplot(pca_phylum, data=phylum, colour="host_Age", loadings=FALSE, loadings.colour = "black", scale = 0.5)+
   scale_colour_manual(values=c("forestgreen","red","blue")) +
@@ -288,11 +290,33 @@ grid.arrange(plot_pca_pylum, plot_pca_class, plot_pca_order, plot_pca_family, pl
 
 ##################################################################################################################################
 
-tsne_phylum <- Rtsne(as.matrix(phylum[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=2)
-tsne_class <- Rtsne(as.matrix(class[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=2)
-tsne_order <- Rtsne(as.matrix(order[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=2)
-tsne_family <- Rtsne(as.matrix(family[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=2)
-tsne_genus <- Rtsne(as.matrix(genus[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=2)
+tsne_phylum <- Rtsne(as.matrix(phylum[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=3)
+tsne_class <- Rtsne(as.matrix(class[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=3)
+tsne_order <- Rtsne(as.matrix(order[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=3)
+tsne_family <- Rtsne(as.matrix(family[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=3)
+tsne_genus <- Rtsne(as.matrix(genus[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=3)
+
+
+test_hd <- as.data.frame(genus$Host_disease)
+which(test_hd$`genus$Host_disease`== 'Healthy')
+test_hd[which(test_hd$Host_disease == 'Healthy')]
+test <- cbind(tsne_genus$Y, )
+write.csv(test, '/home/bicjh/CI_final/tsne_genus.csv')
+
+library(plotly)
+plot_ly(data = as.data.frame(tsne_genus$Y),x =  ~V1, y = ~V2, z = ~V3, color = ~genus$study_code, colors = c('#636EFA','#EF553B','#00CC96')) %>% 
+  add_markers(size = 1)
+
+
+
+
+
+
+
+
+
+
+
 
 par(mfrow=c(2, 3))
 
@@ -316,7 +340,7 @@ legend("bottomright", legend = levels(factor(order$Host_disease)), pch = 19, col
 plot(tsne_family$Y, col=as.factor(family$Host_disease), pch = 3, cex =0.5)
 legend("bottomright", legend = levels(factor(family$Host_disease)), pch = 19, col = factor(levels(factor(family$Host_disease))), cex=0.5)
 plot(tsne_genus$Y, col=as.factor(genus$Host_disease), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(genus$Host_disease)), pch = 19, col = factor(levels(factor(ggg$Host_disease))), cex=0.5)
+legend("bottomright", legend = levels(factor(genus$Host_disease)), pch = 19, col = factor(levels(factor(genus$Host_disease))), cex=0.5)
 
 plot(tsne_phylum$Y, col=as.factor(phylum$host_Age), pch = 3, cex =0.5)
 legend("bottomright", legend = levels(factor(phylum$host_Age)), pch = 19, col = factor(levels(factor(phylum$host_Age))), cex=0.5)
@@ -327,7 +351,7 @@ legend("bottomright", legend = levels(factor(order$host_Age)), pch = 19, col = f
 plot(tsne_family$Y, col=as.factor(family$host_Age), pch = 3, cex =0.5)
 legend("bottomright", legend = levels(factor(family$host_Age)), pch = 19, col = factor(levels(factor(family$host_Age))), cex=0.5)
 plot(tsne_genus$Y, col=as.factor(genus$host_Age), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(genus$host_Age)), pch = 19, col = factor(levels(factor(ggg$host_Age))), cex=0.5)
+legend("bottomright", legend = levels(factor(genus$host_Age)), pch = 19, col = factor(levels(factor(genus$host_Age))), cex=0.5)
 ##################################################################################################################################
 
 # tsne_phylum_Host_disease <- as.data.frame(tsne_phylum_Host_disease$Y)
@@ -408,8 +432,6 @@ grid.arrange(plot_s_p, plot_s_c, plot_s_o, plot_s_f, plot_s_g, nrow=2, ncol=3)
 
 
 
-
-
 #### 수정필요
 hc <- hclust(dist(data_phylum), method='average')
 cutree(hc,k=3)
@@ -445,6 +467,7 @@ ggplot() +
 #qplot(, colour = cluster, data = as.factor(clustering_phylum$cluster))
 
 nc=NbClust(nutrient.scaled,distance="euclidean",min.nc=2, max.nc=15, method="average")
+
 ##################################################################################################################################
 
 registerDoMC(cores = 30)
