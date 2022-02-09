@@ -2,12 +2,19 @@
 
 *****
 
-![pca_hostDisease](pca_HostDisease.png)
+> ## PCA
 
+![pca_hostDisease](pca_HostDisease.png)
 ![pca_study](pca_study.png)
 
 *****
 
+> ## PCA
+
+![tsne_hostDisease](tsne_HostDisease.png)
+![pca_study](tsne_study.png)
+
+*****
 > [MGYS00005138](https://www.ebi.ac.uk/metagenomics/studies/MGYS00005138) 3028 samples
 
 *Study Name*
