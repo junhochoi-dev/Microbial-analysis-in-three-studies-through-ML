@@ -336,25 +336,17 @@ legend("bottomright", legend = levels(factor(genus$host_Age)), pch = 19, col = f
 # 5184 : 1557
 # 5194 : 663
 
-par(mfrow=c(1, 1))
-glimpse(metadata)
-hc <- hclust(d=dist(data_class), method='average')
-plot(hc, main="HCLUSTERING RESULT")
-
-sil_metadata <- c(NA)
 sil_phylum <- c(NA)
 sil_class <- c(NA)
 sil_order <- c(NA)
 sil_family <- c(NA)
 sil_genus <- c(NA)
 for(idx in 2:10){
-  pam_fit <- pam(dist(metadata), diss=TRUE, k=idx)
   pam_fit_phylum <- pam(dist(data_phylum), diss=TRUE, k=idx)
   pam_fit_class <- pam(dist(data_class), diss=TRUE, k=idx)
   pam_fit_order <- pam(dist(data_order), diss=TRUE, k=idx)
   pam_fit_family <- pam(dist(data_family), diss=TRUE, k=idx)
   pam_fit_genus <- pam(dist(data_genus), diss=TRUE, k=idx)
-  sil_metadata[idx] <- pam_fit$silinfo$avg.width
   sil_phylum[idx] <- pam_fit_phylum$silinfo$avg.width
   sil_class[idx] <- pam_fit_class$silinfo$avg.width
   sil_order[idx] <- pam_fit_order$silinfo$avg.width
@@ -364,8 +356,6 @@ for(idx in 2:10){
 }
 
 par(mfrow=c(2, 3))
-plot(1:10, sil_metadata, xlab = "Number of clusters", ylab = "Silhouette Width")
-lines(1:10, sil_metadata)
 plot(1:10, sil_phylum, xlab = "Number of clusters", ylab = "Silhouette Width")
 lines(1:10, sil_phylum)
 plot(1:10, sil_class, xlab = "Number of clusters", ylab = "Silhouette Width")
@@ -447,6 +437,8 @@ model_class_svmRadialWeights <- train(Host_disease ~ ., data = train_class, meth
 model_order_svmRadialWeights <- train(Host_disease ~ ., data = train_order, method = 'svmRadialWeights', trControl = fitControl,verbose = F)
 model_family_svmRadialWeights <- train(Host_disease ~ ., data = train_family, method = 'svmRadialWeights', trControl = fitControl,verbose = F)
 model_genus_svmRadialWeights <- train(Host_disease ~ ., data = train_genus, method = 'svmRadialWeights', trControl = fitControl,verbose = F)
+
+##################################################################################################################################
 
 accuracy_phylum <- c()
 tmp <- data.frame(model_phylum_randomforest$resample[,'Accuracy'], rep('RandomForest', 30))
@@ -534,5 +526,95 @@ ggplot(specificity_phylum) +
   geom_jitter(aes(x=model, y=value), alpha=0.2) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
   ggtitle("Phylum_Specificity")
+
+accuracy_class <- c()
+tmp <- data.frame(model_class_randomforest$resample[,'Accuracy'], rep('RandomForest', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_class <- rbind(accuracy_class, tmp)
+tmp <- data.frame(model_class_c50$resample[,'Accuracy'], rep('C5.0', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_class <- rbind(accuracy_class, tmp)
+tmp <- data.frame(model_class_ranger$resample[,'Accuracy'], rep('Ranger', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_class <- rbind(accuracy_class, tmp)
+tmp <- data.frame(model_class_Linda$resample[,'Accuracy'], rep('Linda', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_class <- rbind(accuracy_class, tmp)
+tmp <- data.frame(model_class_LogitBoost$resample[,'Accuracy'], rep('LogitBoost', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_class <- rbind(accuracy_class, tmp)
+tmp <- data.frame(model_class_svmRadial$resample[,'Accuracy'], rep('svmRadial', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_class <- rbind(accuracy_class, tmp)
+tmp <- data.frame(model_class_svmRadialWeights$resample[,'Accuracy'], rep('svmRadialWeights', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_class <- rbind(accuracy_class, tmp)
+
+sensitivity_class <- c()
+tmp <- data.frame(model_class_randomforest$resample[,'Mean_Sensitivity'], rep('RandomForest', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_class <- rbind(sensitivity_class, tmp)
+tmp <- data.frame(model_class_c50$resample[,'Mean_Sensitivity'], rep('C5.0', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_class <- rbind(sensitivity_class, tmp)
+tmp <- data.frame(model_class_ranger$resample[,'Mean_Sensitivity'], rep('Ranger', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_class <- rbind(sensitivity_class, tmp)
+tmp <- data.frame(model_class_Linda$resample[,'Mean_Sensitivity'], rep('Linda', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_class <- rbind(sensitivity_class, tmp)
+tmp <- data.frame(model_class_LogitBoost$resample[,'Mean_Sensitivity'], rep('LogitBoost', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_class <- rbind(sensitivity_class, tmp)
+tmp <- data.frame(model_class_svmRadial$resample[,'Mean_Sensitivity'], rep('svmRadial', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_class <- rbind(sensitivity_class, tmp)
+tmp <- data.frame(model_class_svmRadialWeights$resample[,'Mean_Sensitivity'], rep('svmRadialWeights', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_class <- rbind(sensitivity_class, tmp)
+
+specificity_class <- c()
+tmp <- data.frame(model_class_randomforest$resample[,'Mean_Specificity'], rep('RandomForest', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_class <- rbind(specificity_class, tmp)
+tmp <- data.frame(model_class_c50$resample[,'Mean_Specificity'], rep('C5.0', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_class <- rbind(specificity_class, tmp)
+tmp <- data.frame(model_class_ranger$resample[,'Mean_Specificity'], rep('Ranger', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_class <- rbind(specificity_class, tmp)
+tmp <- data.frame(model_class_Linda$resample[,'Mean_Specificity'], rep('Linda', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_class <- rbind(specificity_class, tmp)
+tmp <- data.frame(model_class_LogitBoost$resample[,'Mean_Specificity'], rep('LogitBoost', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_class <- rbind(specificity_class, tmp)
+tmp <- data.frame(model_class_svmRadial$resample[,'Mean_Specificity'], rep('svmRadial', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_class <- rbind(specificity_class, tmp)
+tmp <- data.frame(model_class_svmRadialWeights$resample[,'Mean_Specificity'], rep('svmRadialWeights', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_class <- rbind(specificity_class, tmp)
+
+ggplot(accuracy_class) +
+  geom_boxplot(aes(x=model, y=value, fill=model)) +
+  geom_jitter(aes(x=model, y=value), alpha=0.2) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
+  ggtitle("Class_Accuracy")
+
+ggplot(sensitivity_class) +
+  geom_boxplot(aes(x=model, y=value, fill=model)) +
+  geom_jitter(aes(x=model, y=value), alpha=0.2) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
+  ggtitle("Class_Sensitivity")
+
+ggplot(specificity_class) +
+  geom_boxplot(aes(x=model, y=value, fill=model)) +
+  geom_jitter(aes(x=model, y=value), alpha=0.2) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
+  ggtitle("Class_Specificity")
+
+# ggsave()
+
 ##################################################################################################################################
 # https://rpubs.com/Evan_Jung/hierarchical_clustering
