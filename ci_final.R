@@ -407,7 +407,7 @@ MySummary  <- function(data, lev = NULL, model = NULL){
 fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 3, savePredictions = TRUE, summaryFunction=MySummary)
 
 model_phylum_randomforest <- train(Host_disease ~ ., data = train_phylum, method = 'rf', trControl = fitControl,verbose = F)
-model_class_randomforest <- train(Host_disease ~ ., data = train_classm, method = 'rf', trControl = fitControl,verbose = F)
+model_class_randomforest <- train(Host_disease ~ ., data = train_class, method = 'rf', trControl = fitControl,verbose = F)
 model_order_randomforest <- train(Host_disease ~ ., data = train_order, method = 'rf', trControl = fitControl,verbose = F)
 model_family_randomforest <- train(Host_disease ~ ., data = train_family, method = 'rf', trControl = fitControl,verbose = F)
 model_genus_randomforest <- train(Host_disease ~ ., data = train_genus, method = 'rf', trControl = fitControl,verbose = F)
@@ -418,23 +418,11 @@ model_order_c50 <- train(Host_disease ~ ., data = train_order, method = 'C5.0', 
 model_family_c50 <- train(Host_disease ~ ., data = train_family, method = 'C5.0', trControl = fitControl,verbose = F)
 model_genus_c50 <- train(Host_disease ~ ., data = train_genus, method = 'C5.0', trControl = fitControl,verbose = F)
 
-model_phylum_earth <- train(Host_disease ~ ., data = train_phylum, method = 'earth', trControl = fitControl,verbose = F)
-model_class_earth <- train(Host_disease ~ ., data = train_class, method = 'earth', trControl = fitControl,verbose = F)
-model_order_earth <- train(Host_disease ~ ., data = train_order, method = 'earth', trControl = fitControl,verbose = F)
-model_family_earth <- train(Host_disease ~ ., data = train_family, method = 'earth', trControl = fitControl,verbose = F)
-model_genus_earth <- train(Host_disease ~ ., data = train_genus, method = 'earth', trControl = fitControl,verbose = F)
-
 model_phylum_ranger <- train(Host_disease ~ ., data = train_phylum, method = 'ranger', trControl = fitControl,verbose = F)
 model_class_ranger <- train(Host_disease ~ ., data = train_class, method = 'ranger', trControl = fitControl,verbose = F)
 model_order_ranger <- train(Host_disease ~ ., data = train_order, method = 'ranger', trControl = fitControl,verbose = F)
 model_family_ranger <- train(Host_disease ~ ., data = train_family, method = 'ranger', trControl = fitControl,verbose = F)
 model_genus_ranger <- train(Host_disease ~ ., data = train_genus, method = 'ranger', trControl = fitControl,verbose = F)
-
-model_phylum_knn <- train(Host_disease ~ ., data = train_phylum, method = 'knn', trControl = fitControl,verbose = F)
-model_class_knn <- train(Host_disease ~ ., data = train_class, method = 'knn', trControl = fitControl,verbose = F)
-model_order_knn <- train(Host_disease ~ ., data = train_order, method = 'knn', trControl = fitControl,verbose = F)
-model_family_knn <- train(Host_disease ~ ., data = train_family, method = 'knn', trControl = fitControl,verbose = F)
-model_genus_knn <- train(Host_disease ~ ., data = train_genus, method = 'knn', trControl = fitControl,verbose = F)
 
 model_phylum_Linda <- train(Host_disease ~ ., data = train_phylum, method = 'Linda', trControl = fitControl,verbose = F)
 model_class_Linda <- train(Host_disease ~ ., data = train_class, method = 'Linda', trControl = fitControl,verbose = F)
@@ -442,31 +430,50 @@ model_order_Linda <- train(Host_disease ~ ., data = train_order, method = 'Linda
 model_family_Linda <- train(Host_disease ~ ., data = train_family, method = 'Linda', trControl = fitControl,verbose = F)
 model_genus_Linda <- train(Host_disease ~ ., data = train_genus, method = 'Linda', trControl = fitControl,verbose = F)
 
-model_phylum_glmboost <- train(Host_disease ~ ., data = train_phylum, method = 'glmboost', trControl = fitControl,verbose = F)
-model_class_glmboost <- train(Host_disease ~ ., data = train_class, method = 'glmboost', trControl = fitControl,verbose = F)
-model_order_glmboost <- train(Host_disease ~ ., data = train_order, method = 'glmboost', trControl = fitControl,verbose = F)
-model_family_glmboost <- train(Host_disease ~ ., data = train_family, method = 'glmboost', trControl = fitControl,verbose = F)
-model_genus_glmboost <- train(Host_disease ~ ., data = train_genus, method = 'glmboost', trControl = fitControl,verbose = F)
-
 model_phylum_LogitBoost <- train(Host_disease ~ ., data = train_phylum, method = 'LogitBoost', trControl = fitControl,verbose = F)
 model_class_LogitBoost <- train(Host_disease ~ ., data = train_class, method = 'LogitBoost', trControl = fitControl,verbose = F)
 model_order_LogitBoost <- train(Host_disease ~ ., data = train_order, method = 'LogitBoost', trControl = fitControl,verbose = F)
 model_family_LogitBoost <- train(Host_disease ~ ., data = train_family, method = 'LogitBoost', trControl = fitControl,verbose = F)
 model_genus_LogitBoost <- train(Host_disease ~ ., data = train_genus, method = 'LogitBoost', trControl = fitControl,verbose = F)
 
-View(model_phylum_randomforest$resample)
+model_phylum_svmRadial <- train(Host_disease ~ ., data = train_phylum, method = 'svmRadial', trControl = fitControl,verbose = F)
+model_class_svmRadial <- train(Host_disease ~ ., data = train_class, method = 'svmRadial', trControl = fitControl,verbose = F)
+model_order_svmRadial <- train(Host_disease ~ ., data = train_order, method = 'svmRadial', trControl = fitControl,verbose = F)
+model_family_svmRadial <- train(Host_disease ~ ., data = train_family, method = 'svmRadial', trControl = fitControl,verbose = F)
+model_genus_svmRadial <- train(Host_disease ~ ., data = train_genus, method = 'svmRadial', trControl = fitControl,verbose = F)
 
-result_phylum_randomforest <- predict(model_phylum_randomforest, newdata=test_phylum)
+model_phylum_svmRadialWeights <- train(Host_disease ~ ., data = train_phylum, method = 'svmRadialWeights', trControl = fitControl,verbose = F)
+model_class_svmRadialWeights <- train(Host_disease ~ ., data = train_class, method = 'svmRadialWeights', trControl = fitControl,verbose = F)
+model_order_svmRadialWeights <- train(Host_disease ~ ., data = train_order, method = 'svmRadialWeights', trControl = fitControl,verbose = F)
+model_family_svmRadialWeights <- train(Host_disease ~ ., data = train_family, method = 'svmRadialWeights', trControl = fitControl,verbose = F)
+model_genus_svmRadialWeights <- train(Host_disease ~ ., data = train_genus, method = 'svmRadialWeights', trControl = fitControl,verbose = F)
 
-cm_phylum_randomforest <- confusionMatrix(result_phylum_randomforest, as.factor(test_phylum$Host_disease))
-disease <- c("Acute Respiratory Infection", "Chronic rhinosinusitis", "Healthy")
-tmp <- cm_phylum_randomforest$byClass
-tmp <- cbind(disease, tmp)
-ggplot() + geom_boxplot(aes(x=model_phylum_randomforest$resample))
-model_phylum_randomforest$resample
-ggboxplot()
+accuracy_phylum <- c()
+tmp <- data.frame(model_phylum_randomforest$resample[,'Accuracy'], rep('RandomForest', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_phylum <- rbind(accuracy_phylum, tmp)
+tmp <- data.frame(model_phylum_c50$resample[,'Accuracy'], rep('C5.0', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_phylum <- rbind(accuracy_phylum, tmp)
+tmp <- data.frame(model_phylum_ranger$resample[,'Accuracy'], rep('Ranger', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_phylum <- rbind(accuracy_phylum, tmp)
+tmp <- data.frame(model_phylum_Linda$resample[,'Accuracy'], rep('Linda', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_phylum <- rbind(accuracy_phylum, tmp)
+tmp <- data.frame(model_phylum_LogitBoost$resample[,'Accuracy'], rep('LogitBoost', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_phylum <- rbind(accuracy_phylum, tmp)
+tmp <- data.frame(model_phylum_svmRadial$resample[,'Accuracy'], rep('svmRadial', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_phylum <- rbind(accuracy_phylum, tmp)
+tmp <- data.frame(model_phylum_svmRadialWeights$resample[,'Accuracy'], rep('svmRadialWeights', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_phylum <- rbind(accuracy_phylum, tmp)
 
-table(metadata$study_attributes.bioproject)
+ggplot(accuracy_phylum) +
+  geom_boxplot(aes(x=model, y=value, fill=model)) +
+  geom_jitter(aes(x=model, y=value), alpha=0.2)
 
 ##################################################################################################################################
 # https://rpubs.com/Evan_Jung/hierarchical_clustering
