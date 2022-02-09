@@ -9,12 +9,20 @@
 
 *****
 
-> ## PCA
+> ## tSNE
 
 ![tsne_hostDisease](tsne_HostDisease.png)
-![pca_study](tsne_study.png)
+![tsne_study](tsne_study.png)
 
 *****
+
+> ## Classification model analysis
+
+![phylum](phylum.png)
+![class](class.png)
+
+*****
+
 > [MGYS00005138](https://www.ebi.ac.uk/metagenomics/studies/MGYS00005138) 3028 samples
 
 *Study Name*

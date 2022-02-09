@@ -19,6 +19,7 @@ library(caret)
 library(devtools)
 library(dplyr)
 library(ggplot2)
+library(patchwork)
 library(ggbiplot)
 library(gridExtra)
 library(doMC)
@@ -509,23 +510,29 @@ tmp <- data.frame(model_phylum_svmRadialWeights$resample[,'Mean_Specificity'], r
 colnames(tmp) <- c('value', 'model')
 specificity_phylum <- rbind(specificity_phylum, tmp)
 
-ggplot(accuracy_phylum) +
+plot_ac_p <- ggplot(accuracy_phylum) +
   geom_boxplot(aes(x=model, y=value, fill=model)) +
   geom_jitter(aes(x=model, y=value), alpha=0.2) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
   ggtitle("Phylum_Accuracy")
 
-ggplot(sensitivity_phylum) +
+plot_ss_p <- ggplot(sensitivity_phylum) +
   geom_boxplot(aes(x=model, y=value, fill=model)) +
   geom_jitter(aes(x=model, y=value), alpha=0.2) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
-  ggtitle("Phylum_Sensitivity")
+  ggtitle("Phylum_Sensitivity") +
+  theme(legend.position = 'none')
 
-ggplot(specificity_phylum) +
+plot_sp_c <- ggplot(specificity_phylum) +
   geom_boxplot(aes(x=model, y=value, fill=model)) +
   geom_jitter(aes(x=model, y=value), alpha=0.2) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
-  ggtitle("Phylum_Specificity")
+  ggtitle("Phylum_Specificity") +
+  theme(legend.position = 'none')
+
+plot_ac_p | (plot_ss_p / plot_sp_c)
+
+##################################################################################################################################
 
 accuracy_class <- c()
 tmp <- data.frame(model_class_randomforest$resample[,'Accuracy'], rep('RandomForest', 30))
@@ -596,25 +603,30 @@ tmp <- data.frame(model_class_svmRadialWeights$resample[,'Mean_Specificity'], re
 colnames(tmp) <- c('value', 'model')
 specificity_class <- rbind(specificity_class, tmp)
 
-ggplot(accuracy_class) +
+plot_ac_c <- ggplot(accuracy_class) +
   geom_boxplot(aes(x=model, y=value, fill=model)) +
   geom_jitter(aes(x=model, y=value), alpha=0.2) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
   ggtitle("Class_Accuracy")
 
-ggplot(sensitivity_class) +
+plot_ss_c <- ggplot(sensitivity_class) +
   geom_boxplot(aes(x=model, y=value, fill=model)) +
   geom_jitter(aes(x=model, y=value), alpha=0.2) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
-  ggtitle("Class_Sensitivity")
+  ggtitle("Class_Sensitivity") + 
+  theme(legend.position = 'none')
 
-ggplot(specificity_class) +
+plot_sp_c <- ggplot(specificity_class) +
   geom_boxplot(aes(x=model, y=value, fill=model)) +
   geom_jitter(aes(x=model, y=value), alpha=0.2) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
-  ggtitle("Class_Specificity")
+  ggtitle("Class_Specificity") +
+  theme(legend.position = 'none')
 
+# grid.arrange(plot_ac_c,plot_ss_c,plot_sp_c, nrow=2, ncol=2)
+
+plot_ac_c | (plot_ss_c / plot_sp_c)
 # ggsave()
-
+# https://patchwork.data-imaginist.com/articles/guides/layout.html
 ##################################################################################################################################
 # https://rpubs.com/Evan_Jung/hierarchical_clustering
