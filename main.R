@@ -13,7 +13,10 @@ library(data.table)
 library(dplyr)
 library(Rtsne)
 library(cluster)
+library(NbClust)
 library(factoextra)
+library(doParallel)
+library(foreach)
 library(lattice)
 library(caret)
 library(devtools)
@@ -333,21 +336,20 @@ legend("bottomright", legend = levels(factor(genus$host_Age)), pch = 19, col = f
 #   geom_point(color=factor(levels(factor(family$Host_disease))))
 
 ##################################################################################################################################
-# 5138 : 1021
-# 5184 : 1557
-# 5194 : 663
 
 sil_phylum <- c(NA)
 sil_class <- c(NA)
 sil_order <- c(NA)
 sil_family <- c(NA)
 sil_genus <- c(NA)
-for(idx in 2:10){
-  pam_fit_phylum <- pam(dist(data_phylum), diss=TRUE, k=idx)
-  pam_fit_class <- pam(dist(data_class), diss=TRUE, k=idx)
-  pam_fit_order <- pam(dist(data_order), diss=TRUE, k=idx)
-  pam_fit_family <- pam(dist(data_family), diss=TRUE, k=idx)
-  pam_fit_genus <- pam(dist(data_genus), diss=TRUE, k=idx)
+registerDoParallel(makeCluster(30))
+#foreach(idx = 2:10,.packages = 'cluster') %dopar% {
+for(idx in 2:10) {
+  pam_fit_phylum <- pam(dist(data_phylum[,-c(1)]), diss=TRUE, k=idx)
+  pam_fit_class <- pam(dist(data_class[,-c(1)]), diss=TRUE, k=idx)
+  pam_fit_order <- pam(dist(data_order[,-c(1)]), diss=TRUE, k=idx)
+  pam_fit_family <- pam(dist(data_family[,-c(1)]), diss=TRUE, k=idx)
+  pam_fit_genus <- pam(dist(data_genus[,-c(1)]), diss=TRUE, k=idx)
   sil_phylum[idx] <- pam_fit_phylum$silinfo$avg.width
   sil_class[idx] <- pam_fit_class$silinfo$avg.width
   sil_order[idx] <- pam_fit_order$silinfo$avg.width
@@ -355,8 +357,8 @@ for(idx in 2:10){
   sil_genus[idx] <- pam_fit_genus$silinfo$avg.width
   print(idx)
 }
-
 par(mfrow=c(2, 3))
+
 plot(1:10, sil_phylum, xlab = "Number of clusters", ylab = "Silhouette Width")
 lines(1:10, sil_phylum)
 plot(1:10, sil_class, xlab = "Number of clusters", ylab = "Silhouette Width")
@@ -367,19 +369,84 @@ plot(1:10, sil_family, xlab = "Number of clusters", ylab = "Silhouette Width")
 lines(1:10, sil_family)
 plot(1:10, sil_genus, xlab = "Number of clusters", ylab = "Silhouette Width")
 lines(1:10, sil_genus)
+View(sil_phylum)
 
-dummy <- dummyVars(" ~ .", data=metadata)
-newdata <- data.frame(predict(dummy, newdata=metadata))
+plot_s_p <- ggplot(as.data.frame(sil_phylum)) +
+  geom_point(aes(x=1:10, y=sil_phylum)) +
+  geom_line(aes(x=1:10, y=sil_phylum)) +
+  ggtitle(label = "Phylum Silhouette score")+
+  scale_y_continuous(breaks = seq(-1, 1, 0.2),labels = scales::percent, limits = c(0, 1))
 
+plot_s_c <- ggplot(as.data.frame(sil_class)) +
+  geom_point(aes(x=1:10, y=sil_class)) +
+  geom_line(aes(x=1:10, y=sil_class)) +
+  ggtitle(label = "Class Silhouette score")+
+  scale_y_continuous(breaks = seq(-1, 1, 0.2),labels = scales::percent, limits = c(0, 1))
+
+plot_s_o <- ggplot(as.data.frame(sil_order)) +
+  geom_point(aes(x=1:10, y=sil_order)) +
+  geom_line(aes(x=1:10, y=sil_order)) +
+  ggtitle(label = "Order Silhouette score")+
+  scale_y_continuous(breaks = seq(-1, 1, 0.2),labels = scales::percent, limits = c(0, 1))
+
+plot_s_f <- ggplot(as.data.frame(sil_family)) +
+  geom_point(aes(x=1:10, y=sil_family)) +
+  geom_line(aes(x=1:10, y=sil_family)) +
+  ggtitle(label = "Family Silhouette score")+
+  scale_y_continuous(breaks = seq(-1, 1, 0.2),labels = scales::percent, limits = c(0, 1))
+
+plot_s_g <- ggplot(as.data.frame(sil_genus)) +
+  geom_point(aes(x=1:10, y=sil_genus)) +
+  geom_line(aes(x=1:10, y=sil_genus)) +
+  ggtitle(label = "Genus Silhouette score")+
+  scale_y_continuous(breaks = seq(-1, 1, 0.2),labels = scales::percent, limits = c(0, 1))
+
+grid.arrange(plot_s_p, plot_s_c, plot_s_o, plot_s_f, plot_s_g, nrow=2, ncol=3)
+
+
+
+
+
+
+
+
+#### 수정필요
+hc <- hclust(dist(data_phylum), method='average')
 cutree(hc,k=3)
 silhouette(hc)
+test <- pam(dist(phylum[,-c(1,2,3,4)]), k=3)
+View(phylum[,-c(1,2,3,4)])
+colnames(phylum)
+table(test, )
+plot(test)
+plot(silhouette(cutree(hc,k=20),dist=dist(data_phylum[,-c(1,2,3,4)]),col=1:20))
 fviz_nbclust(metadata, kmeans, method = "silhouette")
+
+# plot(silhouette(cutree(hc,k=7),dist=dist(s_data),col=1:7))
 
 plot(hc, k=3)
 rect.hclust(hc,k=3,border="red")
-plot(silhouette(cutree(hc,k=20),dist=dist(metadata),col=1:20))
+plot(silhouette(cutree(hc,k=3),dist=metadata,col=1:3))
 
 ##################################################################################################################################
+# K-Means Clustering
+train_phylum <- phylum[,-c(1,3,4)]
+train_class <- class[,-c(1,3,4)]
+train_order <- order[,-c(1,3,4)]
+train_family <- family[,-c(1,3,4)]
+train_genus <- genus[,-c(1,3,4)]
+
+clustering_phylum <- kmeans(train_phylum[,-1], center = 3, iter.max = 10000)
+View(as.factor(clustering_phylum$cluster))
+View(clustering_phylum)
+ggplot() +
+  geom_point(data = clustering_phylum$cluster, aes(x=))
+  
+#qplot(, colour = cluster, data = as.factor(clustering_phylum$cluster))
+
+nc=NbClust(nutrient.scaled,distance="euclidean",min.nc=2, max.nc=15, method="average")
+##################################################################################################################################
+
 registerDoMC(cores = 30)
 getDoParWorkers()
 
@@ -626,7 +693,12 @@ plot_sp_c <- ggplot(specificity_class) +
 # grid.arrange(plot_ac_c,plot_ss_c,plot_sp_c, nrow=2, ncol=2)
 
 plot_ac_c | (plot_ss_c / plot_sp_c)
+
+##################################################################################################################################
+
 # ggsave()
 # https://patchwork.data-imaginist.com/articles/guides/layout.html
+
 ##################################################################################################################################
+
 # https://rpubs.com/Evan_Jung/hierarchical_clustering

@@ -8,6 +8,12 @@
 ![pca_study](pca_study.png)
 
 *****
+> ## Silhoutte score
+
+![Silhoutte_score](silhouette_score.png)
+
+*****
+
 
 > ## tSNE
 
