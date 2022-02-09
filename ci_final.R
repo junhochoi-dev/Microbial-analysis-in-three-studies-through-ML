@@ -2,7 +2,7 @@
 ##                                  ##    
 ##  Programmed by Junho Choi        ##
 ##  2022.01.24                      ##
-##  PS_final                        ##
+##  CI_Study                        ##
 ##                                  ##
 ######################################
 
@@ -471,9 +471,68 @@ tmp <- data.frame(model_phylum_svmRadialWeights$resample[,'Accuracy'], rep('svmR
 colnames(tmp) <- c('value', 'model')
 accuracy_phylum <- rbind(accuracy_phylum, tmp)
 
+sensitivity_phylum <- c()
+tmp <- data.frame(model_phylum_randomforest$resample[,'Mean_Sensitivity'], rep('RandomForest', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_phylum <- rbind(sensitivity_phylum, tmp)
+tmp <- data.frame(model_phylum_c50$resample[,'Mean_Sensitivity'], rep('C5.0', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_phylum <- rbind(sensitivity_phylum, tmp)
+tmp <- data.frame(model_phylum_ranger$resample[,'Mean_Sensitivity'], rep('Ranger', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_phylum <- rbind(sensitivity_phylum, tmp)
+tmp <- data.frame(model_phylum_Linda$resample[,'Mean_Sensitivity'], rep('Linda', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_phylum <- rbind(sensitivity_phylum, tmp)
+tmp <- data.frame(model_phylum_LogitBoost$resample[,'Mean_Sensitivity'], rep('LogitBoost', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_phylum <- rbind(sensitivity_phylum, tmp)
+tmp <- data.frame(model_phylum_svmRadial$resample[,'Mean_Sensitivity'], rep('svmRadial', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_phylum <- rbind(sensitivity_phylum, tmp)
+tmp <- data.frame(model_phylum_svmRadialWeights$resample[,'Mean_Sensitivity'], rep('svmRadialWeights', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_phylum <- rbind(sensitivity_phylum, tmp)
+
+specificity_phylum <- c()
+tmp <- data.frame(model_phylum_randomforest$resample[,'Mean_Specificity'], rep('RandomForest', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_phylum <- rbind(specificity_phylum, tmp)
+tmp <- data.frame(model_phylum_c50$resample[,'Mean_Specificity'], rep('C5.0', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_phylum <- rbind(specificity_phylum, tmp)
+tmp <- data.frame(model_phylum_ranger$resample[,'Mean_Specificity'], rep('Ranger', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_phylum <- rbind(specificity_phylum, tmp)
+tmp <- data.frame(model_phylum_Linda$resample[,'Mean_Specificity'], rep('Linda', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_phylum <- rbind(specificity_phylum, tmp)
+tmp <- data.frame(model_phylum_LogitBoost$resample[,'Mean_Specificity'], rep('LogitBoost', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_phylum <- rbind(specificity_phylum, tmp)
+tmp <- data.frame(model_phylum_svmRadial$resample[,'Mean_Specificity'], rep('svmRadial', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_phylum <- rbind(specificity_phylum, tmp)
+tmp <- data.frame(model_phylum_svmRadialWeights$resample[,'Mean_Specificity'], rep('svmRadialWeights', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_phylum <- rbind(specificity_phylum, tmp)
+
 ggplot(accuracy_phylum) +
   geom_boxplot(aes(x=model, y=value, fill=model)) +
-  geom_jitter(aes(x=model, y=value), alpha=0.2)
+  geom_jitter(aes(x=model, y=value), alpha=0.2) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
+  ggtitle("Phylum_Accuracy")
 
+ggplot(sensitivity_phylum) +
+  geom_boxplot(aes(x=model, y=value, fill=model)) +
+  geom_jitter(aes(x=model, y=value), alpha=0.2) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
+  ggtitle("Phylum_Sensitivity")
+
+ggplot(specificity_phylum) +
+  geom_boxplot(aes(x=model, y=value, fill=model)) +
+  geom_jitter(aes(x=model, y=value), alpha=0.2) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1L)) +
+  ggtitle("Phylum_Specificity")
 ##################################################################################################################################
 # https://rpubs.com/Evan_Jung/hierarchical_clustering
