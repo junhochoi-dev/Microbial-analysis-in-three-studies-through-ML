@@ -275,7 +275,7 @@ genus <- cpm(genus$counts, normalized.lib.sizes=TRUE, log=TRUE)
 genus <- t(genus)
 genus <- cbind(tmp_column, genus)
 
-set.seed(42)
+set.seed(777)
 
 pca_phylum <- prcomp(as.matrix(phylum[,-c(1,2,3,4)]))
 pca_class <- prcomp(as.matrix(class[,-c(1,2,3,4)]))
@@ -374,14 +374,27 @@ plot_ly(data = as.data.frame(tsne_phylum$Y),x =  ~V1, y = ~V2, z = ~V3, color = 
 
 
 
-
-
-
-
-
-
-
 par(mfrow=c(2, 3))
+
+plot_t_p <- ggplot(as.data.frame(tsne_phylum$Y)) +
+  geom_point(aes(x=tsne_phylum$Y[,1], y=tsne_phylum$Y[,2], color=phylum$Host_disease)) +
+  ggtitle(label = "Phylum tSNE")
+
+plot_t_c <- ggplot(as.data.frame(tsne_class$Y)) +
+  geom_point(aes(x=tsne_class$Y[,1], y=tsne_class$Y[,2], color=class$Host_disease)) +
+  ggtitle(label = "Class tSNE")
+
+plot_t_o <- ggplot(as.data.frame(tsne_order$Y)) +
+  geom_point(aes(x=tsne_order$Y[,1], y=tsne_order$Y[,2], color=order$Host_disease)) +
+  ggtitle(label = "Order tSNE")
+
+plot_t_f <- ggplot(as.data.frame(tsne_family$Y)) +
+  geom_point(aes(x=tsne_family$Y[,1], y=tsne_family$Y[,2], color=family$Host_disease)) +
+  ggtitle(label = "Family tSNE")
+
+plot_t_g <- ggplot(as.data.frame(tsne_genus$Y)) +
+  geom_point(aes(x=tsne_genus$Y[,1], y=tsne_genus$Y[,2], color=genus$Host_disease)) +
+  ggtitle(label = "Genus tSNE")
 
 plot(tsne_phylum$Y, col=as.factor(phylum$study_code), pch = 3, cex =0.5)
 legend("bottomright", legend = levels(factor(phylum$study_code)), pch = 19, col = factor(levels(factor(phylum$study_code))), cex=0.3)
@@ -394,16 +407,6 @@ legend("bottomright", legend = levels(factor(family$study_code)), pch = 19, col 
 plot(tsne_genus$Y, col=as.factor(genus$study_code), pch = 3, cex =0.5)
 legend("bottomright", legend = levels(factor(ggg$study_code)), pch = 19, col = factor(levels(factor(ggg$study_code))), cex=0.3)
 
-plot(tsne_phylum$Y, col=as.factor(phylum$Host_disease), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(phylum$Host_disease)), pch = 19, col = factor(levels(factor(phylum$Host_disease))), cex=0.3)
-plot(tsne_class$Y, col=as.factor(class$Host_disease), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(class$Host_disease)), pch = 19, col = factor(levels(factor(class$Host_disease))), cex=0.3)
-plot(tsne_order$Y, col=as.factor(order$Host_disease), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(order$Host_disease)), pch = 19, col = factor(levels(factor(order$Host_disease))), cex=0.3)
-plot(tsne_family$Y, col=as.factor(family$Host_disease), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(family$Host_disease)), pch = 19, col = factor(levels(factor(family$Host_disease))), cex=0.3)
-plot(tsne_genus$Y, col=as.factor(genus$Host_disease), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(genus$Host_disease)), pch = 19, col = factor(levels(factor(genus$Host_disease))), cex=0.3)
 
 plot(tsne_phylum$Y, col=as.factor(phylum$host_Age), pch = 3, cex =0.5)
 legend("bottomright", legend = levels(factor(phylum$host_Age)), pch = 19, col = factor(levels(factor(phylum$host_Age))), cex=0.3)
@@ -572,11 +575,6 @@ tmp <- as.vector(clustering_phylum$cluster)
 View(tmp)
 ?fviz_cluster(tmp, train_phylum[,-1], ellipse.type = "norm")
 
-그 뭐냐 TMM 해야돼!!!!!!!!!!!!!!!!!!
-  그 뭐냐 TMM 해야돼!!!!!!!!!!!!!!!!!!
-    그 뭐냐 TMM 해야돼!!!!!!!!!!!!!!!!!!
-  그 뭐냐 TMM 해야돼!!!!!!!!!!!!!!!!!!
-그 뭐냐 TMM 해야돼!!!!!!!!!!!!!!!!!!
 
 ##################################################################################################################################
 
