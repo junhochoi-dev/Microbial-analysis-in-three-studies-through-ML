@@ -4,7 +4,6 @@
 
 <div>
     <a href="https://plotly.com/~junhochoi-dev/1/?share_key=LxEdgh42P5CjROExcL1weA" target="_blank" title="Plot 1" style="display: block; text-align: center;"><img src="https://plotly.com/~junhochoi-dev/1.png?share_key=LxEdgh42P5CjROExcL1weA" alt="Plot 1" style="max-width: 100%;width: 600px;"  width="600" onerror="this.onerror=null;this.src='https://plotly.com/404.png';" /></a>
-    <script data-plotly="junhochoi-dev:1" sharekey-plotly="LxEdgh42P5CjROExcL1weA" src="https://plotly.com/embed.js" async></script>
 </div>
 
 
