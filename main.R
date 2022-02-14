@@ -85,7 +85,8 @@ MGYS00005138_srarun_table <- MGYS00005138_srarun_table[, -c('lat_lon', 'latitude
 MGYS00005138_srarun_table <- rename(MGYS00005138_srarun_table, 'run_accession' = 'Run')
 
 # MGYS00005184
-MGYS00005184_metadata <- MGYS00005184_metadata[, -c('sample_collection date', 'sample_environment (material)')]
+MGYS00005184_metadata <- MGYS00005184_metadata[, -c('sample_collection date', 'sample_environment (material)', 'sample_host sex')]
+MGYS00005184_metadata <- MGYS00005184_metadata[, -c('sample_geographic location (latitude)', 'sample_geographic location (longitude)')]
 MGYS00005184_metadata <- rename(MGYS00005184_metadata, 'sample_collection_date' = 'sample_collection-date')
 MGYS00005184_metadata <- rename(MGYS00005184_metadata, 'sample_environment_material' = 'sample_environment-material')
 MGYS00005184_srarun_table <- MGYS00005184_srarun_table[, -c('BioSample')]
@@ -94,7 +95,6 @@ MGYS00005184_srarun_table <- MGYS00005184_srarun_table[, -c('lat_lon', 'latitude
 MGYS00005184_srarun_table <- MGYS00005184_srarun_table[, -c('geographic_location_(latitude)', 'geographic_location_(longitude)')]
 MGYS00005184_srarun_table <- MGYS00005184_srarun_table[, -c('Sample Name')]
 MGYS00005184_srarun_table <- rename(MGYS00005184_srarun_table, "run_accession" = "Run")
-
 # MGYS00005194
 MGYS00005194_srarun_table <- MGYS00005194_srarun_table[, -c('BioSample')]
 MGYS00005194_srarun_table <- MGYS00005194_srarun_table[, -c('ena_checklist')]
@@ -109,7 +109,7 @@ MGYS00005184_data <- merge(MGYS00005184_metadata, MGYS00005184_srarun_table, by=
 #
 MGYS00005194_data <- merge(MGYS00005194_metadata, MGYS00005194_srarun_table, by='run_accession', all = TRUE)
 #
-MGYS00005138_data[which(MGYS00005138_data$host_Age=="Infant")]$host_Age <- 4
+MGYS00005138_data[which(MGYS00005138_data$host_Age=="Infant")]$host_Age <- 1
 MGYS00005138_data$host_Age <- as.integer(MGYS00005138_data$host_Age)
 MGYS00005138_data$collection_date <- as.character(MGYS00005138_data$collection_date)
 #
@@ -136,7 +136,6 @@ MGYS00005138_data <- MGYS00005138_data[ complete.cases(MGYS00005138_data[ , c("H
 
 metadata <- merge(MGYS00005138_data, MGYS00005184_data, by=intersect(names(MGYS00005138_data), names(MGYS00005184_data)), all=T)
 metadata <- merge(metadata, MGYS00005194_data, by=intersect(names(metadata), names(MGYS00005194_data)), all=T)
-unique(metadata$Host_disease)
 
 ##################################################################################################################################
 
@@ -231,6 +230,7 @@ column_data <- rename(column_data, 'run_accession' = 'metadata.run_accession')
 column_data <- rename(column_data, 'Host_disease' = 'metadata.Host_disease')
 column_data <- rename(column_data, 'host_Age' = 'metadata.host_Age')
 column_data <- rename(column_data, 'study_code' = 'metadata.study_attributes.bioproject')
+
 ##################################################################################################################################
 # TMM Normalization
 
@@ -243,31 +243,36 @@ genus <- column_data %>% inner_join(data_genus)
 tmp_column <- phylum[,c(1:4)]
 tmp <- DGEList(t(as.matrix(phylum[,-c(1:4)])))
 phylum <- calcNormFactors(tmp, method="TMM")
-phylum <- t(phylum$counts)
+phylum <- cpm(phylum$counts, normalized.lib.sizes=TRUE, log=TRUE)
+phylum <- t(phylum)
 phylum <- cbind(tmp_column, phylum)
 
 tmp_column <- class[,c(1:4)]
 tmp <- DGEList(t(as.matrix(class[,-c(1:4)])))
 class <- calcNormFactors(tmp, method="TMM")
-class <- t(class$counts)
+class <- cpm(class$counts, normalized.lib.sizes=TRUE, log=TRUE)
+class <- t(class)
 class <- cbind(tmp_column, class)
 
 tmp_column <- order[,c(1:4)]
 tmp <- DGEList(t(as.matrix(order[,-c(1:4)])))
 order <- calcNormFactors(tmp, method="TMM")
-order <- t(order$counts)
+order <- cpm(order$counts, normalized.lib.sizes=TRUE, log=TRUE)
+order <- t(order)
 order <- cbind(tmp_column, order)
 
 tmp_column <- family[,c(1:4)]
 tmp <- DGEList(t(as.matrix(family[,-c(1:4)])))
 family <- calcNormFactors(tmp, method="TMM")
-family <- t(family$counts)
+family <- cpm(family$counts, normalized.lib.sizes=TRUE, log=TRUE)
+family <- t(family)
 family <- cbind(tmp_column, family)
 
 tmp_column <- genus[,c(1:4)]
 tmp <- DGEList(t(as.matrix(genus[,-c(1:4)])))
 genus <- calcNormFactors(tmp, method="TMM")
-genus <- t(genus$counts)
+genus <- cpm(genus$counts, normalized.lib.sizes=TRUE, log=TRUE)
+genus <- t(genus)
 genus <- cbind(tmp_column, genus)
 
 set.seed(42)
@@ -285,6 +290,33 @@ screeplot(pca_class, main = "CLASS PCA", col = "black", type = "lines", pch = 1,
 screeplot(pca_order, main = "ORDER PCA", col = "black", type = "lines", pch = 1, npcs = 10)
 screeplot(pca_family, main = "FAMILY PCA", col = "black", type = "lines", pch = 1, npcs = 10)
 screeplot(pca_genus, main = "GENUS PCA", col = "black", type = "lines", pch = 1, npcs = 10)
+
+plot_pca_pylum <- autoplot(pca_phylum, data=phylum, colour="study_code", loadings=FALSE, loadings.colour = "black", scale = 0.5) +
+  scale_colour_manual(values=c("forestgreen","red","blue")) +
+  scale_fill_manual(values=c("forestgreen","red","blue")) +
+  scale_shape_manual(values=c(25,22,23))
+
+plot_pca_class <- autoplot(pca_class, data=class, colour="study_code", loadings=FALSE, loadings.colour = "black", scale = 0.5) +
+  scale_colour_manual(values=c("forestgreen","red","blue")) +
+  scale_fill_manual(values=c("forestgreen","red","blue")) +
+  scale_shape_manual(values=c(25,22,23))
+
+plot_pca_order <- autoplot(pca_order, data=order, colour="study_code", loadings=FALSE, loadings.colour = "black", scale = 0.5) +
+  scale_colour_manual(values=c("forestgreen","red","blue")) +
+  scale_fill_manual(values=c("forestgreen","red","blue")) +
+  scale_shape_manual(values=c(25,22,23))
+
+plot_pca_family <- autoplot(pca_family, data=family, colour="study_code", loadings=FALSE, loadings.colour = "black", scale = 0.5) +
+  scale_colour_manual(values=c("forestgreen","red","blue")) +
+  scale_fill_manual(values=c("forestgreen","red","blue")) +
+  scale_shape_manual(values=c(25,22,23))
+
+plot_pca_genus <- autoplot(pca_genus, data=genus, colour="study_code", loadings=FALSE, loadings.colour = "black", scale = 0.5) +
+  scale_colour_manual(values=c("forestgreen","red","blue")) +
+  scale_fill_manual(values=c("forestgreen","red","blue")) +
+  scale_shape_manual(values=c(25,22,23))
+
+grid.arrange(plot_pca_pylum, plot_pca_class, plot_pca_order, plot_pca_family, plot_pca_genus, nrow=2, ncol=3)
 
 plot_pca_pylum <- autoplot(pca_phylum, data=phylum, colour="Host_disease", loadings=FALSE, loadings.colour = "black", scale = 0.5) +
   scale_colour_manual(values=c("forestgreen","red","blue")) +
@@ -315,26 +347,27 @@ grid.arrange(plot_pca_pylum, plot_pca_class, plot_pca_order, plot_pca_family, pl
 
 ##################################################################################################################################
 
-tsne_phylum <- Rtsne(as.matrix(phylum[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=3)
-tsne_class <- Rtsne(as.matrix(class[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=3)
-tsne_order <- Rtsne(as.matrix(order[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=3)
-tsne_family <- Rtsne(as.matrix(family[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=3)
-tsne_genus <- Rtsne(as.matrix(genus[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=3)
+tsne_phylum <- Rtsne(as.matrix(phylum[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=2, num_threads = 30)
+tsne_class <- Rtsne(as.matrix(class[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=2, num_threads = 30)
+tsne_order <- Rtsne(as.matrix(order[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=2, num_threads = 30)
+tsne_family <- Rtsne(as.matrix(family[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=2, num_threads = 30)
+tsne_genus <- Rtsne(as.matrix(genus[,-c(1,2,3,4)]), PCA = FALSE, check_duplicates = FALSE, perplexity=30, theta=0.5, dims=2, num_threads = 30)
 
+View(tsne_phylum$Y)
 
-test_hd <- as.data.frame(genus$Host_disease)
-which(test_hd$`genus$Host_disease`== 'Healthy')
-unique(genus$Host_disease)
-test_hd[which(test_hd$`genus$Host_disease`== 'Healthy'),] <- 1
-test_hd[which(test_hd$`genus$Host_disease`== 'Chronic rhinosinusitis'),] <- 2
-test_hd[which(test_hd$`genus$Host_disease`== 'Acute Respiratory Infection'),] <- 3
-View(test_hd)
-test <- cbind(tsne_genus$Y, test_hd)
-View(test)
+test_hd <- as.data.frame(phylum$Host_disease)
+which(test_hd$`phylum$Host_disease`== 'Healthy')
+unique(phylum$Host_disease)
+test_hd[which(test_hd$`phylum$Host_disease`== 'Healthy'),] <- 1
+test_hd[which(test_hd$`phylum$Host_disease`== 'Chronic rhinosinusitis'),] <- 2
+test_hd[which(test_hd$`phylum$Host_disease`== 'Acute Respiratory Infection'),] <- 3
+
+test <- cbind(tsne_phylum$Y, test_hd)
+
 write.csv(test, '/home/bicjh/CI_final/tsne_genus.csv')
 
 library(plotly)
-plot_ly(data = as.data.frame(tsne_genus$Y),x =  ~V1, y = ~V2, z = ~V3, color = ~genus$study_code, colors = c('#636EFA','#EF553B','#00CC96')) %>% 
+plot_ly(data = as.data.frame(tsne_phylum$Y),x =  ~V1, y = ~V2, z = ~V3, color = ~genus$study_code, colors = c('#636EFA','#EF553B','#00CC96')) %>% 
   add_markers(size = 1)
 
 
@@ -351,37 +384,37 @@ plot_ly(data = as.data.frame(tsne_genus$Y),x =  ~V1, y = ~V2, z = ~V3, color = ~
 par(mfrow=c(2, 3))
 
 plot(tsne_phylum$Y, col=as.factor(phylum$study_code), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(phylum$study_code)), pch = 19, col = factor(levels(factor(phylum$study_code))), cex=0.5)
+legend("bottomright", legend = levels(factor(phylum$study_code)), pch = 19, col = factor(levels(factor(phylum$study_code))), cex=0.3)
 plot(tsne_class$Y, col=as.factor(class$study_code), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(class$study_code)), pch = 19, col = factor(levels(factor(class$study_code))), cex=0.5)
+legend("bottomright", legend = levels(factor(class$study_code)), pch = 19, col = factor(levels(factor(class$study_code))), cex=0.3)
 plot(tsne_order$Y, col=as.factor(order$study_code), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(order$study_code)), pch = 19, col = factor(levels(factor(order$study_code))), cex=0.5)
+legend("bottomright", legend = levels(factor(order$study_code)), pch = 19, col = factor(levels(factor(order$study_code))), cex=0.3)
 plot(tsne_family$Y, col=as.factor(family$study_code), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(family$study_code)), pch = 19, col = factor(levels(factor(family$study_code))), cex=0.5)
+legend("bottomright", legend = levels(factor(family$study_code)), pch = 19, col = factor(levels(factor(family$study_code))), cex=0.3)
 plot(tsne_genus$Y, col=as.factor(genus$study_code), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(ggg$study_code)), pch = 19, col = factor(levels(factor(ggg$study_code))), cex=0.5)
+legend("bottomright", legend = levels(factor(ggg$study_code)), pch = 19, col = factor(levels(factor(ggg$study_code))), cex=0.3)
 
 plot(tsne_phylum$Y, col=as.factor(phylum$Host_disease), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(phylum$Host_disease)), pch = 19, col = factor(levels(factor(phylum$Host_disease))), cex=0.5)
+legend("bottomright", legend = levels(factor(phylum$Host_disease)), pch = 19, col = factor(levels(factor(phylum$Host_disease))), cex=0.3)
 plot(tsne_class$Y, col=as.factor(class$Host_disease), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(class$Host_disease)), pch = 19, col = factor(levels(factor(class$Host_disease))), cex=0.5)
+legend("bottomright", legend = levels(factor(class$Host_disease)), pch = 19, col = factor(levels(factor(class$Host_disease))), cex=0.3)
 plot(tsne_order$Y, col=as.factor(order$Host_disease), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(order$Host_disease)), pch = 19, col = factor(levels(factor(order$Host_disease))), cex=0.5)
+legend("bottomright", legend = levels(factor(order$Host_disease)), pch = 19, col = factor(levels(factor(order$Host_disease))), cex=0.3)
 plot(tsne_family$Y, col=as.factor(family$Host_disease), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(family$Host_disease)), pch = 19, col = factor(levels(factor(family$Host_disease))), cex=0.5)
+legend("bottomright", legend = levels(factor(family$Host_disease)), pch = 19, col = factor(levels(factor(family$Host_disease))), cex=0.3)
 plot(tsne_genus$Y, col=as.factor(genus$Host_disease), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(genus$Host_disease)), pch = 19, col = factor(levels(factor(genus$Host_disease))), cex=0.5)
+legend("bottomright", legend = levels(factor(genus$Host_disease)), pch = 19, col = factor(levels(factor(genus$Host_disease))), cex=0.3)
 
 plot(tsne_phylum$Y, col=as.factor(phylum$host_Age), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(phylum$host_Age)), pch = 19, col = factor(levels(factor(phylum$host_Age))), cex=0.5)
+legend("bottomright", legend = levels(factor(phylum$host_Age)), pch = 19, col = factor(levels(factor(phylum$host_Age))), cex=0.3)
 plot(tsne_class$Y, col=as.factor(class$host_Age), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(class$host_Age)), pch = 19, col = factor(levels(factor(class$host_Age))), cex=0.5)
+legend("bottomright", legend = levels(factor(class$host_Age)), pch = 19, col = factor(levels(factor(class$host_Age))), cex=0.3)
 plot(tsne_order$Y, col=as.factor(order$host_Age), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(order$host_Age)), pch = 19, col = factor(levels(factor(order$host_Age))), cex=0.5)
+legend("bottomright", legend = levels(factor(order$host_Age)), pch = 19, col = factor(levels(factor(order$host_Age))), cex=0.3)
 plot(tsne_family$Y, col=as.factor(family$host_Age), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(family$host_Age)), pch = 19, col = factor(levels(factor(family$host_Age))), cex=0.5)
+legend("bottomright", legend = levels(factor(family$host_Age)), pch = 19, col = factor(levels(factor(family$host_Age))), cex=0.3)
 plot(tsne_genus$Y, col=as.factor(genus$host_Age), pch = 3, cex =0.5)
-legend("bottomright", legend = levels(factor(genus$host_Age)), pch = 19, col = factor(levels(factor(genus$host_Age))), cex=0.5)
+legend("bottomright", legend = levels(factor(genus$host_Age)), pch = 19, col = factor(levels(factor(genus$host_Age))), cex=0.3)
 ##################################################################################################################################
 
 # tsne_phylum_Host_disease <- as.data.frame(tsne_phylum_Host_disease$Y)
