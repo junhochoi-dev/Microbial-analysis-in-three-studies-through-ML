@@ -22,9 +22,12 @@ library(caret)
 library(devtools)
 library(dplyr)
 library(rgl)
+
 library(ggplot2)
-library(patchwork)
 library(ggbiplot)
+library(ggpubr)
+
+library(patchwork)
 library(gridExtra)
 library(doMC)
 library(edgeR)
@@ -378,23 +381,25 @@ par(mfrow=c(2, 3))
 
 plot_t_p <- ggplot(as.data.frame(tsne_phylum$Y)) +
   geom_point(aes(x=tsne_phylum$Y[,1], y=tsne_phylum$Y[,2], color=phylum$Host_disease)) +
-  ggtitle(label = "Phylum tSNE")
+  ggtitle(label = "Phylum tSNE") + theme(legend.position = "none")
 
 plot_t_c <- ggplot(as.data.frame(tsne_class$Y)) +
   geom_point(aes(x=tsne_class$Y[,1], y=tsne_class$Y[,2], color=class$Host_disease)) +
-  ggtitle(label = "Class tSNE")
+  ggtitle(label = "Class tSNE") + theme(legend.position = "none")
 
 plot_t_o <- ggplot(as.data.frame(tsne_order$Y)) +
   geom_point(aes(x=tsne_order$Y[,1], y=tsne_order$Y[,2], color=order$Host_disease)) +
-  ggtitle(label = "Order tSNE")
+  ggtitle(label = "Order tSNE") + theme(legend.position = "none")
 
 plot_t_f <- ggplot(as.data.frame(tsne_family$Y)) +
   geom_point(aes(x=tsne_family$Y[,1], y=tsne_family$Y[,2], color=family$Host_disease)) +
-  ggtitle(label = "Family tSNE")
+  ggtitle(label = "Family tSNE") + theme(legend.position = "none")
 
 plot_t_g <- ggplot(as.data.frame(tsne_genus$Y)) +
   geom_point(aes(x=tsne_genus$Y[,1], y=tsne_genus$Y[,2], color=genus$Host_disease)) +
-  ggtitle(label = "Genus tSNE")
+  ggtitle(label = "Genus tSNE") + theme(legend.position = "none")
+
+ggarrange(plot_t_p, plot_t_c, plot_t_o, plot_t_f, plot_t_g, common.legend = TRUE)
 
 plot(tsne_phylum$Y, col=as.factor(phylum$study_code), pch = 3, cex =0.5)
 legend("bottomright", legend = levels(factor(phylum$study_code)), pch = 19, col = factor(levels(factor(phylum$study_code))), cex=0.3)
