@@ -27,6 +27,7 @@ library(patchwork)
 library(ggbiplot)
 library(gridExtra)
 library(doMC)
+library(edgeR)
 
 setwd("/home/bicjh/CI_final")
 getwd()
@@ -225,24 +226,49 @@ data_genus <- rename(data_genus, 'run_accession' = 'rownames(data_genus)')
 # Host sex
 # Host Age
 
-tmp_data <- data.frame(metadata$run_accession, metadata$Host_disease, metadata$study_attributes.bioproject, metadata$host_Age)
-tmp_data <- rename(tmp_data, 'run_accession' = 'metadata.run_accession')
-tmp_data <- rename(tmp_data, 'Host_disease' = 'metadata.Host_disease')
-tmp_data <- rename(tmp_data, 'host_Age' = 'metadata.host_Age')
-tmp_data <- rename(tmp_data, 'study_code' = 'metadata.study_attributes.bioproject')
-
+column_data <- data.frame(metadata$run_accession, metadata$Host_disease, metadata$study_attributes.bioproject, metadata$host_Age)
+column_data <- rename(column_data, 'run_accession' = 'metadata.run_accession')
+column_data <- rename(column_data, 'Host_disease' = 'metadata.Host_disease')
+column_data <- rename(column_data, 'host_Age' = 'metadata.host_Age')
+column_data <- rename(column_data, 'study_code' = 'metadata.study_attributes.bioproject')
 ##################################################################################################################################
+# TMM Normalization
 
-phylum <- tmp_data%>%
-  inner_join(data_phylum)
-class <- tmp_data %>%
-  inner_join(data_class)
-order <- tmp_data %>%
-  inner_join(data_order)
-family <- tmp_data %>%
-  inner_join(data_family)
-genus <- tmp_data %>%
-  inner_join(data_genus)
+phylum <- column_data %>% inner_join(data_phylum)
+class <- column_data %>% inner_join(data_class)
+order <- column_data %>% inner_join(data_order)
+family <- column_data %>% inner_join(data_family)
+genus <- column_data %>% inner_join(data_genus)
+
+tmp_column <- phylum[,c(1:4)]
+tmp <- DGEList(t(as.matrix(phylum[,-c(1:4)])))
+phylum <- calcNormFactors(tmp, method="TMM")
+phylum <- t(phylum$counts)
+phylum <- cbind(tmp_column, phylum)
+
+tmp_column <- class[,c(1:4)]
+tmp <- DGEList(t(as.matrix(class[,-c(1:4)])))
+class <- calcNormFactors(tmp, method="TMM")
+class <- t(class$counts)
+class <- cbind(tmp_column, class)
+
+tmp_column <- order[,c(1:4)]
+tmp <- DGEList(t(as.matrix(order[,-c(1:4)])))
+order <- calcNormFactors(tmp, method="TMM")
+order <- t(order$counts)
+order <- cbind(tmp_column, order)
+
+tmp_column <- family[,c(1:4)]
+tmp <- DGEList(t(as.matrix(family[,-c(1:4)])))
+family <- calcNormFactors(tmp, method="TMM")
+family <- t(family$counts)
+family <- cbind(tmp_column, family)
+
+tmp_column <- genus[,c(1:4)]
+tmp <- DGEList(t(as.matrix(genus[,-c(1:4)])))
+genus <- calcNormFactors(tmp, method="TMM")
+genus <- t(genus$counts)
+genus <- cbind(tmp_column, genus)
 
 set.seed(42)
 
@@ -259,29 +285,28 @@ screeplot(pca_class, main = "CLASS PCA", col = "black", type = "lines", pch = 1,
 screeplot(pca_order, main = "ORDER PCA", col = "black", type = "lines", pch = 1, npcs = 10)
 screeplot(pca_family, main = "FAMILY PCA", col = "black", type = "lines", pch = 1, npcs = 10)
 screeplot(pca_genus, main = "GENUS PCA", col = "black", type = "lines", pch = 1, npcs = 10)
-# https://kkokkilkon.tistory.com/144
 
-plot_pca_pylum <- autoplot(pca_phylum, data=phylum, colour="host_Age", loadings=FALSE, loadings.colour = "black", scale = 0.5)+
+plot_pca_pylum <- autoplot(pca_phylum, data=phylum, colour="Host_disease", loadings=FALSE, loadings.colour = "black", scale = 0.5) +
   scale_colour_manual(values=c("forestgreen","red","blue")) +
   scale_fill_manual(values=c("forestgreen","red","blue")) +
   scale_shape_manual(values=c(25,22,23))
 
-plot_pca_class <- autoplot(pca_class, data=class, colour="host_Age", loadings=FALSE, loadings.colour = "black", scale = 0.5)+
+plot_pca_class <- autoplot(pca_class, data=class, colour="Host_disease", loadings=FALSE, loadings.colour = "black", scale = 0.5) +
   scale_colour_manual(values=c("forestgreen","red","blue")) +
   scale_fill_manual(values=c("forestgreen","red","blue")) +
   scale_shape_manual(values=c(25,22,23))
 
-plot_pca_order <- autoplot(pca_order, data=order, colour="host_Age", loadings=FALSE, loadings.colour = "black", scale = 0.5)+
+plot_pca_order <- autoplot(pca_order, data=order, colour="Host_disease", loadings=FALSE, loadings.colour = "black", scale = 0.5) +
   scale_colour_manual(values=c("forestgreen","red","blue")) +
   scale_fill_manual(values=c("forestgreen","red","blue")) +
   scale_shape_manual(values=c(25,22,23))
 
-plot_pca_family <- autoplot(pca_family, data=family, colour="host_Age", loadings=FALSE, loadings.colour = "black", scale = 0.5)+
+plot_pca_family <- autoplot(pca_family, data=family, colour="Host_disease", loadings=FALSE, loadings.colour = "black", scale = 0.5) +
   scale_colour_manual(values=c("forestgreen","red","blue")) +
   scale_fill_manual(values=c("forestgreen","red","blue")) +
   scale_shape_manual(values=c(25,22,23))
 
-plot_pca_genus <- autoplot(pca_genus, data=genus, colour="host_Age", loadings=FALSE, loadings.colour = "black", scale = 0.5)+
+plot_pca_genus <- autoplot(pca_genus, data=genus, colour="Host_disease", loadings=FALSE, loadings.colour = "black", scale = 0.5) +
   scale_colour_manual(values=c("forestgreen","red","blue")) +
   scale_fill_manual(values=c("forestgreen","red","blue")) +
   scale_shape_manual(values=c(25,22,23))
@@ -299,8 +324,13 @@ tsne_genus <- Rtsne(as.matrix(genus[,-c(1,2,3,4)]), PCA = FALSE, check_duplicate
 
 test_hd <- as.data.frame(genus$Host_disease)
 which(test_hd$`genus$Host_disease`== 'Healthy')
-test_hd[which(test_hd$Host_disease == 'Healthy')]
-test <- cbind(tsne_genus$Y, )
+unique(genus$Host_disease)
+test_hd[which(test_hd$`genus$Host_disease`== 'Healthy'),] <- 1
+test_hd[which(test_hd$`genus$Host_disease`== 'Chronic rhinosinusitis'),] <- 2
+test_hd[which(test_hd$`genus$Host_disease`== 'Acute Respiratory Infection'),] <- 3
+View(test_hd)
+test <- cbind(tsne_genus$Y, test_hd)
+View(test)
 write.csv(test, '/home/bicjh/CI_final/tsne_genus.csv')
 
 library(plotly)
@@ -431,7 +461,6 @@ grid.arrange(plot_s_p, plot_s_c, plot_s_o, plot_s_f, plot_s_g, nrow=2, ncol=3)
 
 
 
-
 #### 수정필요
 hc <- hclust(dist(data_phylum), method='average')
 cutree(hc,k=3)
@@ -451,6 +480,19 @@ rect.hclust(hc,k=3,border="red")
 plot(silhouette(cutree(hc,k=3),dist=metadata,col=1:3))
 
 ##################################################################################################################################
+# TMM Normalization
+tmp <- DGEList(t(as.matrix(phylum[,-c(1,2,3,4)])))
+phylum[,-c(1,3,4)] <- calcNormFactors(tmp, method="TMM")
+
+
+
+View(tmp$counts)
+View(tmp$samples)
+
+TMM <- calcNormFactors(tmp, method="TMM")
+View(TMM$counts)
+View(TMM$samples)
+
 # K-Means Clustering
 train_phylum <- phylum[,-c(1,3,4)]
 train_class <- class[,-c(1,3,4)]
@@ -458,15 +500,50 @@ train_order <- order[,-c(1,3,4)]
 train_family <- family[,-c(1,3,4)]
 train_genus <- genus[,-c(1,3,4)]
 
-clustering_phylum <- kmeans(train_phylum[,-1], center = 3, iter.max = 10000)
-View(as.factor(clustering_phylum$cluster))
-View(clustering_phylum)
-ggplot() +
-  geom_point(data = clustering_phylum$cluster, aes(x=))
-  
-#qplot(, colour = cluster, data = as.factor(clustering_phylum$cluster))
 
-nc=NbClust(nutrient.scaled,distance="euclidean",min.nc=2, max.nc=15, method="average")
+clustering_phylum <- kmeans(train_phylum[,-1], center = 10, iter.max = 10000)
+clustering_class <- kmeans(train_class[,-1], center = 10, iter.max = 10000)
+clustering_order <- kmeans(train_order[,-1], center = 10, iter.max = 10000)
+clustering_family <- kmeans(train_family[,-1], center = 10, iter.max = 10000)
+clustering_genus <- kmeans(train_genus[,-1], center = 10, iter.max = 10000)
+
+sil_phylum <- silhouette(clustering_phylum$cluster, dist(train_phylum[,-1]))
+sil_class <- silhouette(clustering_class$cluster, dist(train_class[,-1]))
+sil_order <- silhouette(clustering_order$cluster, dist(train_order[,-1]))
+sil_family <- silhouette(clustering_family$cluster, dist(train_family[,-1]))
+sil_genus <- silhouette(clustering_genus$cluster, dist(train_genus[,-1]))
+# Kmeans clustering
+# Hierarchical clustering
+# PAM clustering
+fviz_silhouette(sil_phylum)
+fviz_silhouette(sil_class)
+fviz_silhouette(sil_order)
+fviz_silhouette(sil_family)
+fviz_silhouette(sil_genus)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+plot(tmp)
+tmp <- as.vector(clustering_phylum$cluster)
+View(tmp)
+?fviz_cluster(tmp, train_phylum[,-1], ellipse.type = "norm")
+
+그 뭐냐 TMM 해야돼!!!!!!!!!!!!!!!!!!
+  그 뭐냐 TMM 해야돼!!!!!!!!!!!!!!!!!!
+    그 뭐냐 TMM 해야돼!!!!!!!!!!!!!!!!!!
+  그 뭐냐 TMM 해야돼!!!!!!!!!!!!!!!!!!
+그 뭐냐 TMM 해야돼!!!!!!!!!!!!!!!!!!
 
 ##################################################################################################################################
 
@@ -718,10 +795,15 @@ plot_sp_c <- ggplot(specificity_class) +
 plot_ac_c | (plot_ss_c / plot_sp_c)
 
 ##################################################################################################################################
-
+### R
 # ggsave()
 # https://patchwork.data-imaginist.com/articles/guides/layout.html
-
 ##################################################################################################################################
+### R STUDY
 
+### NORMALIZATION
+# https://davetang.org/muse/2011/01/24/normalisation-methods-for-dge-data/
+# https://m.blog.naver.com/hanstar_1997/222099507315
+
+### CLUSTERING
 # https://rpubs.com/Evan_Jung/hierarchical_clustering
