@@ -21,6 +21,11 @@
 ![tsne_hostDisease](tsne_HostDisease.png)
 ![tsne_study](tsne_study.png)
 
+*****
+
+> ## Clustering (KMeans)
+
+![clustering_kmeans](clustering_kmeans.png)
 
 *****
 

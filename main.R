@@ -430,12 +430,6 @@ plot(tsne_family$Y, col=as.factor(family$host_Age), pch = 3, cex =0.5)
 legend("bottomright", legend = levels(factor(family$host_Age)), pch = 19, col = factor(levels(factor(family$host_Age))), cex=0.3)
 plot(tsne_genus$Y, col=as.factor(genus$host_Age), pch = 3, cex =0.5)
 legend("bottomright", legend = levels(factor(genus$host_Age)), pch = 19, col = factor(levels(factor(genus$host_Age))), cex=0.3)
-##################################################################################################################################
-
-# tsne_phylum_Host_disease <- as.data.frame(tsne_phylum_Host_disease$Y)
-
-# ggplot(tsne_phylum_Host_disease, aes(x=V1, y=V2, fill=phylum$Host_disease)) +
-#   geom_point(color=factor(levels(factor(family$Host_disease))))
 
 ##################################################################################################################################
 
@@ -444,7 +438,6 @@ sil_class <- c(NA)
 sil_order <- c(NA)
 sil_family <- c(NA)
 sil_genus <- c(NA)
-registerDoParallel(makeCluster(30))
 #foreach(idx = 2:10,.packages = 'cluster') %dopar% {
 for(idx in 2:10) {
   pam_fit_phylum <- pam(dist(data_phylum[,-c(1)]), diss=TRUE, k=idx)
@@ -528,18 +521,8 @@ rect.hclust(hc,k=3,border="red")
 plot(silhouette(cutree(hc,k=3),dist=metadata,col=1:3))
 
 ##################################################################################################################################
-# TMM Normalization
-tmp <- DGEList(t(as.matrix(phylum[,-c(1,2,3,4)])))
-phylum[,-c(1,3,4)] <- calcNormFactors(tmp, method="TMM")
-
-
-
-View(tmp$counts)
-View(tmp$samples)
-
-TMM <- calcNormFactors(tmp, method="TMM")
-View(TMM$counts)
-View(TMM$samples)
+registerDoMC(cores = 40)
+getDoParWorkers()
 
 # K-Means Clustering
 train_phylum <- phylum[,-c(1,3,4)]
@@ -548,37 +531,35 @@ train_order <- order[,-c(1,3,4)]
 train_family <- family[,-c(1,3,4)]
 train_genus <- genus[,-c(1,3,4)]
 
-
-clustering_phylum <- kmeans(train_phylum[,-1], center = 10, iter.max = 10000)
-clustering_class <- kmeans(train_class[,-1], center = 10, iter.max = 10000)
-clustering_order <- kmeans(train_order[,-1], center = 10, iter.max = 10000)
-clustering_family <- kmeans(train_family[,-1], center = 10, iter.max = 10000)
-clustering_genus <- kmeans(train_genus[,-1], center = 10, iter.max = 10000)
+clustering_phylum <- kmeans(train_phylum[,-1], center = 3, iter.max = 10000)
+clustering_class <- kmeans(train_class[,-1], center = 3, iter.max = 10000)
+clustering_order <- kmeans(train_order[,-1], center = 3, iter.max = 10000)
+clustering_family <- kmeans(train_family[,-1], center = 3, iter.max = 10000)
+clustering_genus <- kmeans(train_genus[,-1], center = 3, iter.max = 10000)
 
 sil_phylum <- silhouette(clustering_phylum$cluster, dist(train_phylum[,-1]))
 sil_class <- silhouette(clustering_class$cluster, dist(train_class[,-1]))
 sil_order <- silhouette(clustering_order$cluster, dist(train_order[,-1]))
 sil_family <- silhouette(clustering_family$cluster, dist(train_family[,-1]))
 sil_genus <- silhouette(clustering_genus$cluster, dist(train_genus[,-1]))
+
+plot_fc_p <- fviz_cluster(clustering_phylum, train_phylum[, -1], ellipse.type = "norm", geom = "point", main = "Phylum cluster map")
+plot_fc_c <- fviz_cluster(clustering_class, train_class[, -1], ellipse.type = "norm", geom = "point", main = "Class cluster map")
+plot_fc_o <- fviz_cluster(clustering_order, train_order[, -1], ellipse.type = "norm", geom = "point", main = "Order cluster map")
+plot_fc_f <- fviz_cluster(clustering_family, train_family[, -1], ellipse.type = "norm", geom = "point", main = "Family cluster map")
+plot_fc_g <- fviz_cluster(clustering_genus, train_genus[, -1], ellipse.type = "norm", geom = "point", main = "Genus cluster map")
+
+grid.arrange(plot_fc_p, plot_fc_c, plot_fc_o, plot_fc_f, plot_fc_g, nrow=2, ncol=3)
+
 # Kmeans clustering
 # Hierarchical clustering
 # PAM clustering
+
 fviz_silhouette(sil_phylum)
 fviz_silhouette(sil_class)
 fviz_silhouette(sil_order)
 fviz_silhouette(sil_family)
 fviz_silhouette(sil_genus)
-
-
-
-
-
-
-
-plot(tmp)
-tmp <- as.vector(clustering_phylum$cluster)
-View(tmp)
-?fviz_cluster(tmp, train_phylum[,-1], ellipse.type = "norm")
 
 
 ##################################################################################################################################
