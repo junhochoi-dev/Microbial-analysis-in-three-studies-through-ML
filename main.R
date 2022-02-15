@@ -18,7 +18,6 @@ library(factoextra)
 library(doParallel)
 library(foreach)
 library(lattice)
-library(caret)
 library(devtools)
 library(dplyr)
 library(rgl)
@@ -27,10 +26,18 @@ library(ggplot2)
 library(ggbiplot)
 library(ggpubr)
 
+library(caret)
+library(plyr)
+library(party)
+library(partykit)
+library(mboost)
+
 library(patchwork)
 library(gridExtra)
 library(doMC)
+
 library(edgeR)
+library(limma)
 
 setwd("/home/bicjh/CI_final")
 getwd()
@@ -568,13 +575,6 @@ fviz_silhouette(sil_genus)
 
 
 
-
-
-
-
-
-
-
 plot(tmp)
 tmp <- as.vector(clustering_phylum$cluster)
 View(tmp)
@@ -583,7 +583,7 @@ View(tmp)
 
 ##################################################################################################################################
 
-registerDoMC(cores = 30)
+registerDoMC(cores = 40)
 getDoParWorkers()
 
 train_phylum <- phylum[,-c(1,3,4)]
@@ -596,10 +596,11 @@ MySummary  <- function(data, lev = NULL, model = NULL){
   a1 <- defaultSummary(data, lev, model)
   b1 <- multiClassSummary(data, lev, model) 
   out <- c(a1,b1)
-  out}
+  out
+  }
 
 fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 3, savePredictions = TRUE, summaryFunction=MySummary)
-
+View(train_phylum)
 model_phylum_randomforest <- train(Host_disease ~ ., data = train_phylum, method = 'rf', trControl = fitControl,verbose = F)
 model_class_randomforest <- train(Host_disease ~ ., data = train_class, method = 'rf', trControl = fitControl,verbose = F)
 model_order_randomforest <- train(Host_disease ~ ., data = train_order, method = 'rf', trControl = fitControl,verbose = F)
@@ -642,6 +643,18 @@ model_order_svmRadialWeights <- train(Host_disease ~ ., data = train_order, meth
 model_family_svmRadialWeights <- train(Host_disease ~ ., data = train_family, method = 'svmRadialWeights', trControl = fitControl,verbose = F)
 model_genus_svmRadialWeights <- train(Host_disease ~ ., data = train_genus, method = 'svmRadialWeights', trControl = fitControl,verbose = F)
 
+model_phylum_LogitBoost <- train(Host_disease ~ ., data = train_phylum, method = 'LogitBoost', trControl = fitControl,verbose = F)
+model_class_LogitBoost <- train(Host_disease ~ ., data = train_class, method = 'LogitBoost', trControl = fitControl,verbose = F)
+model_order_LogitBoost <- train(Host_disease ~ ., data = train_order, method = 'LogitBoost', trControl = fitControl,verbose = F)
+model_family_LogitBoost <- train(Host_disease ~ ., data = train_family, method = 'LogitBoost', trControl = fitControl,verbose = F)
+model_genus_LogitBoost <- train(Host_disease ~ ., data = train_genus, method = 'LogitBoost', trControl = fitControl,verbose = F)
+
+model_phylum_knn <- train(Host_disease ~ ., data = train_phylum, method = 'kknn', trControl = fitControl,verbose = F)
+model_class_knn <- train(Host_disease ~ ., data = train_class, method = 'kknn', trControl = fitControl,verbose = F)
+model_order_knn <- train(Host_disease ~ ., data = train_order, method = 'kknn', trControl = fitControl,verbose = F)
+model_family_knn <- train(Host_disease ~ ., data = train_family, method = 'kknn', trControl = fitControl,verbose = F)
+model_genus_knn <- train(Host_disease ~ ., data = train_genus, method = 'kknn', trControl = fitControl,verbose = F)
+
 ##################################################################################################################################
 
 accuracy_phylum <- c()
@@ -664,6 +677,12 @@ tmp <- data.frame(model_phylum_svmRadial$resample[,'Accuracy'], rep('svmRadial',
 colnames(tmp) <- c('value', 'model')
 accuracy_phylum <- rbind(accuracy_phylum, tmp)
 tmp <- data.frame(model_phylum_svmRadialWeights$resample[,'Accuracy'], rep('svmRadialWeights', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_phylum <- rbind(accuracy_phylum, tmp)
+tmp <- data.frame(model_phylum_LogitBoost$resample[,'Accuracy'], rep('LogitBoost', 30))
+colnames(tmp) <- c('value', 'model')
+accuracy_phylum <- rbind(accuracy_phylum, tmp)
+tmp <- data.frame(model_phylum_knn$resample[,'Accuracy'], rep('knn', 30))
 colnames(tmp) <- c('value', 'model')
 accuracy_phylum <- rbind(accuracy_phylum, tmp)
 
@@ -689,6 +708,12 @@ sensitivity_phylum <- rbind(sensitivity_phylum, tmp)
 tmp <- data.frame(model_phylum_svmRadialWeights$resample[,'Mean_Sensitivity'], rep('svmRadialWeights', 30))
 colnames(tmp) <- c('value', 'model')
 sensitivity_phylum <- rbind(sensitivity_phylum, tmp)
+tmp <- data.frame(model_phylum_LogitBoost$resample[,'Mean_Sensitivity'], rep('LogitBoost', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_phylum <- rbind(sensitivity_phylum, tmp)
+tmp <- data.frame(model_phylum_knn$resample[,'Mean_Sensitivity'], rep('knn', 30))
+colnames(tmp) <- c('value', 'model')
+sensitivity_phylum <- rbind(sensitivity_phylum, tmp)
 
 specificity_phylum <- c()
 tmp <- data.frame(model_phylum_randomforest$resample[,'Mean_Specificity'], rep('RandomForest', 30))
@@ -710,6 +735,12 @@ tmp <- data.frame(model_phylum_svmRadial$resample[,'Mean_Specificity'], rep('svm
 colnames(tmp) <- c('value', 'model')
 specificity_phylum <- rbind(specificity_phylum, tmp)
 tmp <- data.frame(model_phylum_svmRadialWeights$resample[,'Mean_Specificity'], rep('svmRadialWeights', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_phylum <- rbind(specificity_phylum, tmp)
+tmp <- data.frame(model_phylum_LogitBoost$resample[,'Mean_Specificity'], rep('LogitBoost', 30))
+colnames(tmp) <- c('value', 'model')
+specificity_phylum <- rbind(specificity_phylum, tmp)
+tmp <- data.frame(model_phylum_knn$resample[,'Mean_Specificity'], rep('knn', 30))
 colnames(tmp) <- c('value', 'model')
 specificity_phylum <- rbind(specificity_phylum, tmp)
 
