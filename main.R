@@ -226,6 +226,9 @@ data_genus <- cbind(rownames(data_genus), data_genus)
 rownames(data_genus) <- NULL
 data_genus <- rename(data_genus, 'run_accession' = 'rownames(data_genus)')
 
+# * 모든 feature의 데이터가 0인 샘플 제거
+# * 분산이 0인 샘플 제거
+
 ##################################################################################################################################
 ### PCA & tSNE
 
@@ -555,12 +558,14 @@ grid.arrange(plot_fc_p, plot_fc_c, plot_fc_o, plot_fc_f, plot_fc_g, nrow=2, ncol
 # Hierarchical clustering
 # PAM clustering
 
-fviz_silhouette(sil_phylum)
-fviz_silhouette(sil_class)
-fviz_silhouette(sil_order)
-fviz_silhouette(sil_family)
-fviz_silhouette(sil_genus)
+plot_fs_p <- fviz_silhouette(sil_phylum)
+plot_fs_c <- fviz_silhouette(sil_class)
+plot_fs_o <- fviz_silhouette(sil_order)
+plot_fs_f <- fviz_silhouette(sil_family)
+plot_fs_g <- fviz_silhouette(sil_genus)
 
+?fviz_silhouette
+grid.arrange(plot_fs_p, plot_fs_c, plot_fs_o, plot_fs_f, plot_fs_g, nrow=2, ncol=3)
 
 ##################################################################################################################################
 
