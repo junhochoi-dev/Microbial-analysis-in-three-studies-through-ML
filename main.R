@@ -578,15 +578,72 @@ train_order <- order[,-c(1,3,4)]
 train_family <- family[,-c(1,3,4)]
 train_genus <- genus[,-c(1,3,4)]
 
-MySummary  <- function(data, lev = NULL, model = NULL){
+customMultiClassSummary <- function (data, lev = NULL, model = NULL) {
+  if (!all(levels(data[, "pred"]) == levels(data[, "obs"]))) 
+    stop("levels of observed and predicted data do not match")
+  has_class_probs <- all(lev %in% colnames(data))
+  if (has_class_probs) {
+    lloss <- mnLogLoss(data = data, lev = lev, model = model)
+    requireNamespaceQuietStop("pROC")
+    requireNamespaceQuietStop("MLmetrics")
+    prob_stats <- lapply(levels(data[, "pred"]), function(x) {
+      obs <- ifelse(data[, "obs"] == x, 1, 0)
+      prob <- data[, x]
+      roc_auc <- try(pROC::roc(obs, data[, x], direction = "<", 
+                               quiet = TRUE), silent = TRUE)
+      roc_auc <- if (inherits(roc_auc, "try-error")) 
+        NA
+      else roc_auc$auc
+      pr_auc <- try(MLmetrics::PRAUC(y_pred = data[, x], 
+                                     y_true = obs), silent = TRUE)
+      if (inherits(pr_auc, "try-error")) 
+        pr_auc <- NA
+      res <- c(ROC = roc_auc, AUC = pr_auc)
+      return(res)
+    })
+    prob_stats <- do.call("rbind", prob_stats)
+    prob_stats <- colMeans(prob_stats, na.rm = TRUE)
+  }
+  CM <- confusionMatrix(data[, "pred"], data[, "obs"], mode = "everything")
+  if (length(levels(data[, "pred"])) == 2) {
+    class_stats <- CM$byClass
+  }
+  else {
+    class_stats <- colMeans(CM$byClass)
+    names(class_stats) <- paste("Mean", names(class_stats))
+  }
+  overall_stats <- if (has_class_probs) 
+    c(CM$overall, logLoss = as.numeric(lloss), AUC = unname(prob_stats["ROC"]), 
+      prAUC = unname(prob_stats["AUC"]))
+  else CM$overall
+  stats <- c(overall_stats, class_stats)
+  print('시행!')
+  stats <- stats[!names(stats) %in% c("AccuracyNull", "AccuracyLower", 
+                                      "AccuracyUpper", "AccuracyPValue", "McnemarPValue", 
+                                      "Mean Prevalence", "Mean Detection Prevalence")]
+  names(stats) <- gsub("[[:blank:]]+", "_", names(stats))
+  stat_list <- c("Accuracy", "Kappa", "Mean_F1", "Mean_Sensitivity", 
+                 "Mean_Specificity", "Mean_Pos_Pred_Value", "Mean_Neg_Pred_Value", 
+                 "Mean_Precision", "Mean_Recall", "Mean_Detection_Rate", 
+                 "Mean_Balanced_Accuracy")
+  if (has_class_probs) 
+    stat_list <- c("logLoss", "AUC", "prAUC", stat_list)
+  if (length(levels(data[, "pred"])) == 2) 
+    stat_list <- gsub("^Mean_", "", stat_list)
+  stats <- stats[c(stat_list)]
+  return(stats)
+}
+
+customSummary  <- function(data, lev = NULL, model = NULL){
   a1 <- defaultSummary(data, lev, model)
-  b1 <- multiClassSummary(data, lev, model) 
+  b1 <- customMultiClassSummary(data, lev, model)
+  # b1 <- multiClassSummary(data, lev, model)
   out <- c(a1,b1)
   out
   }
 
-fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 3, savePredictions = TRUE, summaryFunction=MySummary)
-View(train_phylum)
+fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 3, savePredictions = TRUE, summaryFunction=customSummary)
+
 model_phylum_randomforest <- train(Host_disease ~ ., data = train_phylum, method = 'rf', trControl = fitControl,verbose = F)
 model_class_randomforest <- train(Host_disease ~ ., data = train_class, method = 'rf', trControl = fitControl,verbose = F)
 model_order_randomforest <- train(Host_disease ~ ., data = train_order, method = 'rf', trControl = fitControl,verbose = F)
@@ -640,7 +697,7 @@ model_class_knn <- train(Host_disease ~ ., data = train_class, method = 'kknn', 
 model_order_knn <- train(Host_disease ~ ., data = train_order, method = 'kknn', trControl = fitControl,verbose = F)
 model_family_knn <- train(Host_disease ~ ., data = train_family, method = 'kknn', trControl = fitControl,verbose = F)
 model_genus_knn <- train(Host_disease ~ ., data = train_genus, method = 'kknn', trControl = fitControl,verbose = F)
-
+model_phylum_knn
 ##################################################################################################################################
 
 accuracy_phylum <- c()
