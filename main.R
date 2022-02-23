@@ -618,6 +618,8 @@ customMultiClassSummary <- function (data, lev = NULL, model = NULL) {
   else CM$overall
   stats <- c(overall_stats, class_stats)
   print('시행!')
+  
+  # hostdisease accuracy, speicificity, sensitivity)
   stats <- stats[!names(stats) %in% c("AccuracyNull", "AccuracyLower", 
                                       "AccuracyUpper", "AccuracyPValue", "McnemarPValue", 
                                       "Mean Prevalence", "Mean Detection Prevalence")]
