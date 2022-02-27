@@ -579,6 +579,7 @@ train_family <- family[,-c(1,3,4)]
 train_genus <- genus[,-c(1,3,4)]
 
 customMultiClassSummary <- function (data, lev = NULL, model = NULL) {
+  # lev <- class
   if (!all(levels(data[, "pred"]) == levels(data[, "obs"]))) 
     stop("levels of observed and predicted data do not match")
   has_class_probs <- all(lev %in% colnames(data))
